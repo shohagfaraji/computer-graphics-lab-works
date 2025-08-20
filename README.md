@@ -6,8 +6,8 @@ A collection of Computer Graphics lab assignments and personal projects, impleme
 
 ## Table of Contents
 
--   [Lab 1](#-lab-1)
--   [Lab 2](#-lab-2)
+-   [Lab 1](#lab-1)
+-   [Lab 2](#lab-2)
 -   [My-Ideas](#my-ideas)
 
 ---
