@@ -61,4 +61,12 @@ A collection of Computer Graphics lab assignments and personal projects, impleme
     -   The diagram is **interactive**: it maintains its proportions relative to the frame size. You can resize the frame however you like, and the diagram will still stay fully visible and scale accordingly.
     -   Highlights how combining **basic line algorithms** with geometry can recreate a complex national landmark.
 
+-   **`colorful-circles`**  
+    Mini projects with animated colorful circles using C++ and OpenGL.
+
+    -   `stacking_circles`
+        ▶️ [Watch sample output video on Youtube](https://www.youtube.com/shorts/3b3Yl48uRfw)
+        
+    -   `circle_drop_on_floor` ▶️ [Watch sample output video on Youtube](https://www.youtube.com/shorts/xH1w36wqjes)
+
 ---
