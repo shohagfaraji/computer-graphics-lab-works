@@ -66,7 +66,6 @@ A collection of Computer Graphics lab assignments and personal projects, impleme
 
     -   `stacking_circles`
         ▶️ [Watch sample output video on Youtube](https://www.youtube.com/shorts/3b3Yl48uRfw)
-        
     -   `circle_drop_on_floor` ▶️ [Watch sample output video on Youtube](https://www.youtube.com/shorts/xH1w36wqjes)
 
 ---
