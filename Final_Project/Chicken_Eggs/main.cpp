@@ -65,7 +65,7 @@ struct Flower {
     float x, y, scale, r, g, b;
 };
 
-static int winW = 900, winH = 600;
+static int winW = 1500, winH = 920;
 static float worldL = -1, worldR = 1, worldB = -1, worldT = 1;
 
 static Screen screenState = Screen::Menu;
