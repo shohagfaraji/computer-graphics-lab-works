@@ -90,6 +90,12 @@ static int lastTick = 0;
 
 static float shake = 0.0f;
 
+// --- Wind Variables
+static float windForce = 0.0f;    // Current horizontal force applied to objects
+static float maxWindForce = 0.5f; // Max strength of the wind
+static float windChangeTimer = 0.0f;
+static float windChangeEvery = 4.0f; // Wind changes every 4 seconds
+
 // --- Mouse / Button support
 struct Button {
     float x1, y1, x2, y2; // in world‑coords
@@ -234,6 +240,7 @@ void drawRect(float x, float y, float w, float h) {
     glVertex2f(x - w, y + h);
     glEnd();
 }
+
 void drawCircle(float x, float y, float r, int seg = 48) {
     glBegin(GL_TRIANGLE_FAN);
     glVertex2f(x, y);
@@ -243,6 +250,7 @@ void drawCircle(float x, float y, float r, int seg = 48) {
     }
     glEnd();
 }
+
 void drawRing(float x, float y, float r, float t, int seg = 64) {
     glBegin(GL_TRIANGLE_STRIP);
     for (int i = 0; i <= seg; i++) {
@@ -253,6 +261,7 @@ void drawRing(float x, float y, float r, float t, int seg = 64) {
     }
     glEnd();
 }
+
 void drawText(float x, float y, const std::string& s,
               void* font = GLUT_BITMAP_HELVETICA_18) {
     glRasterPos2f(x, y);
@@ -276,6 +285,7 @@ void addParticles(Vec2 p, int n, float r, float g, float b) {
         parts.push_back(q);
     }
 }
+
 void addFloatText(Vec2 p, const std::string& s, float r, float g, float b) {
     FloatText ft;
     ft.p = p;
@@ -477,7 +487,7 @@ void drawGradientBG() {
 
     // Top HUD Background Bar
     glColor3f(1, 1, 1);
-//    drawRect(0, 0.93f, 1.0f, 0.07f);
+    //    drawRect(0, 0.93f, 1.0f, 0.07f);
 }
 
 void eggShape(const Falling& o) {
@@ -592,6 +602,7 @@ void drawParticles() {
         drawCircle(p.p.x, p.p.y, p.size, 10);
     }
 }
+
 void drawFloatTexts() {
     for (const auto& ft : floatTexts) {
         glColor3f(ft.r, ft.g, ft.b);
@@ -604,6 +615,61 @@ void drawHUD() {
     drawText(-0.95f, 0.92f, "Score: " + std::to_string(score));
     drawText(-0.22f, 0.92f, "Time: " + std::to_string(timeLeft));
     drawText(0.60f, 0.92f, "Lives: " + std::to_string(lives));
+
+    // --- Wind Indicator ---
+    float startX = 0.3f;
+    float textX = startX - 0.2f; // Position of "Wind:" text
+
+    // FIX: Increase this value to push the arrow start further right
+    float arrowCenterX = startX + 0.1f;
+
+    float arrowY = 0.92f;
+    float arrowLength = std::abs(windForce) / maxWindForce * 0.2f;
+
+    // Set color based on strength (lighter for weaker, darker for stronger)
+    float strength = std::abs(windForce) / maxWindForce;
+    glColor3f(0.0f, 0.0f, 0.0f);
+    if (strength > 0.5f)
+        glColor3f(1.0f, 0.0f, 0.1f); // Red for stronger wind
+
+    // Draw Text
+    drawText(textX, arrowY, "Wind:");
+
+    if (arrowLength > 0.01f) {
+        glLineWidth(3.0f * strength + 1.0f);
+
+        // Calculate the arrow's start and end points
+        float lineStart, lineEnd;
+        int direction = (windForce > 0) ? 1 : -1;
+
+        // The line starts at arrowCenterX and extends in the direction
+        lineStart = arrowCenterX;
+        lineEnd = arrowCenterX + arrowLength * direction;
+
+        glBegin(GL_LINES);
+        // Arrow line
+        glVertex2f(lineStart, arrowY + 0.01f);
+        glVertex2f(lineEnd, arrowY + 0.01f);
+        glEnd();
+
+        // Arrowhead (simple triangle)
+        glBegin(GL_TRIANGLES);
+        if (windForce > 0) { // Right arrow
+            glVertex2f(lineEnd, arrowY + 0.01f);
+            glVertex2f(lineEnd - 0.02f, arrowY + 0.025f);
+            glVertex2f(lineEnd - 0.02f, arrowY - 0.005f);
+        } else { // Left arrow
+            glVertex2f(lineEnd, arrowY + 0.01f);
+            glVertex2f(lineEnd + 0.02f, arrowY + 0.025f);
+            glVertex2f(lineEnd + 0.02f, arrowY - 0.005f);
+        }
+        glEnd();
+    } else {
+        glColor3f(0.2f, 0.5f, 0.2f); // Gentle green for no wind
+        // Draw "Calm" near the arrow's starting position
+        drawText(arrowCenterX - 0.04f, arrowY, "Calm");
+    }
+    // ------------------------------
 }
 
 void drawMenu() {
@@ -658,6 +724,17 @@ void updateGame(float dt) {
         }
     }
 
+    // --- Wind Update ---
+    windChangeTimer += dt;
+    if (windChangeTimer >= windChangeEvery) {
+        // Change wind force to a new random value between -maxWindForce and
+        // maxWindForce
+        windForce = frand(-maxWindForce, maxWindForce);
+        // Optional: Change wind change frequency too
+        windChangeEvery = frand(3.0f, 6.0f);
+        windChangeTimer = 0.0f;
+    }
+
     // Object spawning
     spawnTimer += dt;
     if (spawnTimer >= spawnEvery) {
@@ -670,6 +747,11 @@ void updateGame(float dt) {
     for (auto& o : objs) {
         if (!o.active)
             continue;
+
+        // --- Apply Wind Force to Horizontal Velocity ---
+        // Apply a small damping factor (0.8) to the wind effect so it's not
+        // instant
+        o.pos.x += windForce * 0.8f * dt;
 
         o.pos.y += o.vy * dt;
         o.rot += o.rotSpd * dt;
@@ -864,6 +946,7 @@ void keyboard(unsigned char key, int, int) {
         }
     }
 }
+
 void special(int key, int, int) {
     if (screenState == Screen::Menu) {
         if (key == GLUT_KEY_UP)
@@ -879,6 +962,7 @@ void special(int key, int, int) {
                             std::min(worldR - basket.halfW, basket.x));
     }
 }
+
 void passiveMotion(int mx, int) {
     if (screenState == Screen::Playing) {
         float norm = mx / (float)winW;
